@@ -19,17 +19,23 @@ import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity {
 
-    private Button button;
+    private Button brakeButton, vibrationButton, airPressureButton, temperatureButton, humidityButton, exhaustButton;
     private Handler handler = new Handler();
     private RequestQueue requestQueue;
-    private final String URL = "http://192.168.43.60/get_sensor_data.php"; // Updated URL
+    private final String URL = "http://192.168.43.60/get_sensor_data1.php"; // Updated URL
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        button = findViewById(R.id.button);
+        brakeButton = findViewById(R.id.brakeButton);
+        vibrationButton = findViewById(R.id.vibrationButton);
+        airPressureButton = findViewById(R.id.airPressureButton);
+        temperatureButton = findViewById(R.id.temperatureButton);
+        humidityButton = findViewById(R.id.humidityButton);
+        exhaustButton = findViewById(R.id.exhaustButton);
+
         requestQueue = Volley.newRequestQueue(this);
 
         fetchLastSensorData();
@@ -41,23 +47,13 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(JSONObject response) {
                         try {
-                            String sensorName = response.getString("sensor_name");
-                            int sensorValue = response.getInt("sensor_value");
-                            button.setText(sensorName + ": " + sensorValue);
-
-                            // Set button color based on sensor value
-                            if (sensorValue < 15) {
-                                button.setBackgroundColor(Color.RED);
-                            } else if (sensorValue >= 15 && sensorValue < 40) {
-                                button.setBackgroundColor(Color.YELLOW);
-                            } else {
-                                button.setBackgroundColor(Color.GREEN);
-                            }
-
-                            // Set button padding
-                            int padding = 20; // Adjust as needed
-                            button.setPadding(padding, padding, padding, padding);
-
+                            // Update each button based on sensor data
+                            updateButton(response, "brake", brakeButton, 15, 40);
+                            updateButton(response, "vibration", vibrationButton, 5, 20);
+                            updateButton(response, "air_pressure", airPressureButton, 20, 50);
+                            updateButton(response, "temperature", temperatureButton, 25, 50);
+                            updateButton(response, "humidity", humidityButton, 30, 60);
+                            updateButton(response, "exhaust", exhaustButton, 10, 30);
                         } catch (JSONException e) {
                             e.printStackTrace();
                             Toast.makeText(MainActivity.this, "JSON error", Toast.LENGTH_SHORT).show();
@@ -87,5 +83,23 @@ public class MainActivity extends AppCompatActivity {
                 fetchLastSensorData(); // Fetch data again after 3 seconds
             }
         }, 3000); // 3 seconds delay
+    }
+
+    private void updateButton(JSONObject response, String sensorName, Button button, int yellowThreshold, int greenThreshold) throws JSONException {
+        int sensorValue = response.getInt(sensorName);
+        button.setText(sensorName + ": " + sensorValue);
+
+        // Set button color based on sensor value
+        if (sensorValue < yellowThreshold) {
+            button.setBackgroundColor(Color.RED);
+        } else if (sensorValue >= yellowThreshold && sensorValue < greenThreshold) {
+            button.setBackgroundColor(Color.YELLOW);
+        } else {
+            button.setBackgroundColor(Color.GREEN);
+        }
+
+        // Set button padding
+        int padding = 20; // Adjust as needed
+        button.setPadding(padding, padding, padding, padding);
     }
 }
